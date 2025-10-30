@@ -1,0 +1,7 @@
+[core]
+    remote = localremote
+['remote "myremote"']
+    url = gdrive://1gFZtcMS-N3IUfRSkjRh5tbkIX_42PJB7
+    gdrive_service_account_json_file_path = C:\Users\baraa\OneDrive\Documents\projects\Credit-Risk-Assessment-System\dvc_sa.json
+['remote "localremote"']
+    url = C:\Users\baraa\DVC_store
