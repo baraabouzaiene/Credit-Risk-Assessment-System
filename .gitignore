@@ -1,2 +1,36 @@
+# Python
+__pycache__/
+*.pyc
 
+# Virtual environment
+.venv/
+env/
+venv/
+
+# DVC cache
+.dvc/cache/
+.dvc/tmp/
+
+# DVC credentials (if they exist)
 dvc_sa.json
+
+# MLflow
+mlruns/
+
+# Data
+data/raw/
+data/interim/
+data/processed/
+
+# Models
+models/
+!models/*.README
+
+# Jupyter notebooks output
+*.ipynb_checkpoints/
+
+# System + editor files
+.DS_Store
+.idea/
+.vscode/
+
