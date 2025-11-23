@@ -21,6 +21,13 @@ model = joblib.load(MODEL_PATH)
 EXPECTED_COLUMNS = list(pd.read_csv(X_TRAIN_PATH, nrows=1).columns)
 
 
+@app.get("/health")
+def health():
+    return {
+        "status": "ok",
+        "model_version": "lightgbm_best",
+    }
+
 class FeaturesDict(BaseModel):
     features: Dict[str, float]
 
@@ -33,21 +40,23 @@ class PredictionResponse(BaseModel):
 @app.post("/predict", response_model=PredictionResponse)
 def predict(payload: FeaturesDict):
     try:
-        raw_feats = payload.features  # dict from JSON
+        # Incoming dict from JSON body
+        raw_feats = payload.features or {}
 
-        # 1) Start with a default row: all features = 0.0
+        # 1) Start with a default row: all model features = 0.0
         row = {col: 0.0 for col in EXPECTED_COLUMNS}
 
-        # 2) Overwrite with values that match known columns
+        # 2) Overwrite with any known feature from the payload
+        #    Unknown features are IGNORED (no 422)
         for k, v in raw_feats.items():
             if k in row:
                 row[k] = v
-            # else: silently ignore unknown keys for now
+            # else: ignore unknown keys silently
 
-        # 3) Build DataFrame in the exact training column order
+        # 3) Build DataFrame in the exact same column order as training
         df = pd.DataFrame([row], columns=EXPECTED_COLUMNS)
 
-        # 4) Predict
+        # 4) Predict probability of default (class 1)
         proba = float(model.predict_proba(df)[0, 1])
         pred = int(proba >= 0.5)
 
@@ -58,6 +67,8 @@ def predict(payload: FeaturesDict):
         )
 
     except HTTPException:
+        # re-raise if we throw it intentionally somewhere else
         raise
     except Exception as e:
+        # any unexpected error → 500
         raise HTTPException(status_code=500, detail=f"Prediction error: {e}")
